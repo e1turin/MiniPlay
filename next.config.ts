@@ -2,14 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "export",
+  // Static export settings
+  basePath: "/zai-miniplayer",
   typescript: {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
   devIndicators: false,
-  // Static export settings
-  basePath: "/zai-miniplayer",
-  // trailingSlash: false,
 };
 
 export default nextConfig;
