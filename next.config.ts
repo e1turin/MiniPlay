@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   devIndicators: false,
   // Static export settings
-  basePath: "/zai-player",
+  basePath: "/zai-miniplayer",
   // trailingSlash: false,
 };
 
