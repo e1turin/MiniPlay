@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+const BASENAME = "/zai-miniplayer";
+
 export const viewport: Viewport = {
   width: "420",
   height: "280",
@@ -12,10 +14,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "MiniPlay",
   description: "A minimalistic offline media player PWA",
-  manifest: "/manifest.json",
+  manifest: `${BASENAME}/manifest.json`,
   icons: {
-    icon: "/icon-512.png",
-    apple: "/icon-512.png",
+    icon: `${BASENAME}/icon-512.png`,
+    apple: `${BASENAME}/icon-512.png`,
   },
   appleWebApp: {
     capable: true,
@@ -32,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="apple-touch-icon" href="/icon-512.png" />
+        <link rel="apple-touch-icon" href={`${BASENAME}/icon-512.png`} />
       </head>
       <body className="antialiased bg-black text-white overflow-hidden">
         {children}
