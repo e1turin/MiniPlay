@@ -32,16 +32,13 @@ bun run start
 
 The static site will be generated in the `docs/` folder, ready for GitHub Pages or any static host.
 
-## Deployment
+## Demo
 
-This project is configured as a **static site** and can be deployed to:
+Start screen:
+![](./docs/screenshot-start.png)
 
-- **GitHub Pages** – Configure to deploy from `/docs` folder
-- **Netlify** – Drag & drop the `docs/` folder
-- **Vercel** – Set build output to `docs`
-- **Any static host** – AWS S3, Cloudflare Pages, etc.
-
-### Live Demo
+Playlist:
+![](./docs/screenshot-playlist.png)
 
 https://e1turin.github.io/zai-miniplayer/
 
@@ -52,7 +49,3 @@ https://e1turin.github.io/zai-miniplayer/
 - **Styling** – Tailwind CSS
 - **State Management** – Zustand
 - **Icons** – Lucide React
-
-## License
-
-MIT
