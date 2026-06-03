@@ -600,7 +600,7 @@ export default function MediaPlayer() {
           {/* Playlist items */}
           <div className="flex-1 overflow-y-auto py-1 px-1">
             {playlist.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-white/15 gap-1">
+              <div className="flex flex-col items-center justify-center h-full text-white/50 gap-1">
                 <ListMusic className="w-5 h-5" />
                 <span className="text-[9px]">Empty playlist</span>
               </div>
@@ -633,7 +633,7 @@ export default function MediaPlayer() {
 
           {/* Track count */}
           {playlist.length > 0 && (
-            <div className="px-2 py-1 border-t border-white/5 text-[9px] text-white/20 text-center">
+            <div className="px-2 py-1 border-t border-white/5 text-[9px] text-white/45 text-center">
               {playlist.length} track{playlist.length !== 1 ? "s" : ""}
             </div>
           )}
@@ -649,7 +649,7 @@ export default function MediaPlayer() {
             <button
               onClick={() => setShowSidebar(!showSidebar)}
               className={`p-1 rounded hover:bg-white/10 transition-colors ${
-                showSidebar ? "text-[#7c3aed]" : "text-white/50 hover:text-white/80"
+                showSidebar ? "text-[#7c3aed]" : "text-white/60 hover:text-white/85"
               }`}
               title="Toggle playlist"
             >
@@ -657,7 +657,7 @@ export default function MediaPlayer() {
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-1 rounded hover:bg-white/10 text-white/30 hover:text-white/60 transition-colors"
+              className="p-1 rounded hover:bg-white/10 text-white/55 hover:text-white/75 transition-colors"
               title="Add to playlist (⌘O)"
             >
               <Plus className="w-3 h-3" />
@@ -667,7 +667,7 @@ export default function MediaPlayer() {
           {/* Center: file name */}
           <div className="flex-1 text-center app-drag-region">
             {currentFileName && (
-              <span className="text-[10px] text-white/30 truncate max-w-[200px] inline-block align-middle">
+              <span className="text-[10px] text-white/60 truncate max-w-[200px] inline-block align-middle">
                 {currentFileName}
               </span>
             )}
@@ -685,23 +685,23 @@ export default function MediaPlayer() {
                 showVolumeSlider ? "w-20 opacity-100" : "w-0 opacity-0"
               }`}
             >
-              <div className="bg-white/5 rounded px-2 py-1 flex items-center">
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  value={isMuted ? 0 : volume}
-                  onChange={handleVolumeChange}
-                  className="w-16 h-1"
-                  disabled={!hasMedia}
-                />
-              </div>
+              <div className="bg-white/8 rounded px-2 py-1 flex items-center">
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={isMuted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    className="w-16 h-1"
+                    disabled={!hasMedia}
+                  />
+                </div>
             </div>
             <button
               onClick={toggleMute}
               disabled={!hasMedia}
-              className="p-1 rounded hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-white/50 hover:text-white/80"
+              className="p-1 rounded hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-white/60 hover:text-white/85"
               title={isMuted ? "Unmute (M)" : "Mute (M)"}
             >
               <VolumeIcon className="w-3 h-3" />
@@ -783,9 +783,9 @@ export default function MediaPlayer() {
               ) : (
                 <>
                   <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
-                    <Music className="w-6 h-6 text-white/20" />
+                    <Music className="w-6 h-6 text-white/45" />
                   </div>
-                  <span className="text-[11px] text-white/20">
+                  <span className="text-[11px] text-white/45">
                     Drop media or right-click to open
                   </span>
                 </>
@@ -798,7 +798,7 @@ export default function MediaPlayer() {
         {hasMedia && (
           <div className="px-3 py-0 shrink-0">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-white/25 font-mono w-7 text-right">
+              <span className="text-[10px] text-white/50 font-mono w-7 text-right">
                 {formatTime(currentTime)}
               </span>
               <input
@@ -810,7 +810,7 @@ export default function MediaPlayer() {
                 onChange={handleSeek}
                 className="flex-1 h-1"
               />
-              <span className="text-[10px] text-white/25 font-mono w-7">
+              <span className="text-[10px] text-white/50 font-mono w-7">
                 {formatTime(duration)}
               </span>
             </div>
@@ -824,7 +824,7 @@ export default function MediaPlayer() {
             <button
               onClick={handlePrevTrack}
               disabled={!hasPrev}
-              className="p-1 rounded-lg hover:bg-white/10 disabled:opacity-15 disabled:hover:bg-transparent transition-colors text-white/40 hover:text-white/80"
+              className="p-1 rounded-lg hover:bg-white/10 disabled:opacity-15 disabled:hover:bg-transparent transition-colors text-white/55 hover:text-white/85"
               title="Previous track"
             >
               <SkipBack className="w-3.5 h-3.5" />
@@ -834,7 +834,7 @@ export default function MediaPlayer() {
             <button
               onClick={handleSkipBack}
               disabled={!hasMedia}
-              className="p-1.5 rounded-lg hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/60 hover:text-white"
+              className="p-1.5 rounded-lg hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/65 hover:text-white"
               title="Rewind 10s (←)"
             >
               <Rewind className="w-3.5 h-3.5" />
@@ -844,7 +844,7 @@ export default function MediaPlayer() {
             <button
               onClick={handlePlayPause}
               disabled={!hasMedia}
-              className="p-2 rounded-lg hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/60 hover:text-white"
+              className="p-2 rounded-lg hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/65 hover:text-white"
               title={isPlaying ? "Pause (Space)" : "Play (Space)"}
             >
               {isPlaying ? (
@@ -858,7 +858,7 @@ export default function MediaPlayer() {
             <button
               onClick={handleSkipForward}
               disabled={!hasMedia}
-              className="p-1.5 rounded-lg hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/60 hover:text-white"
+              className="p-1.5 rounded-lg hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/65 hover:text-white"
               title="Forward 10s (→)"
             >
               <FastForward className="w-3.5 h-3.5" />
@@ -868,7 +868,7 @@ export default function MediaPlayer() {
             <button
               onClick={handleNextTrack}
               disabled={!hasNext}
-              className="p-1 rounded-lg hover:bg-white/10 disabled:opacity-15 disabled:hover:bg-transparent transition-colors text-white/40 hover:text-white/80"
+              className="p-1 rounded-lg hover:bg-white/10 disabled:opacity-15 disabled:hover:bg-transparent transition-colors text-white/55 hover:text-white/85"
               title="Next track"
             >
               <SkipForward className="w-3.5 h-3.5" />
@@ -888,7 +888,7 @@ export default function MediaPlayer() {
                       className={`px-1.5 py-0.5 text-[10px] rounded font-mono transition-colors ${
                         playbackSpeed === speed
                           ? "bg-[#7c3aed] text-white"
-                          : "bg-white/5 text-white/50 hover:bg-white/10"
+                          : "bg-white/5 text-white/65 hover:bg-white/10"
                       }`}
                     >
                       {speed}x
@@ -896,7 +896,7 @@ export default function MediaPlayer() {
                   ))}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] text-white/20 font-mono">0.25x</span>
+                  <span className="text-[9px] text-white/45 font-mono">0.25x</span>
                   <input
                     type="range"
                     min={0.25}
@@ -907,14 +907,14 @@ export default function MediaPlayer() {
                     onMouseDown={(e) => e.stopPropagation()}
                     className="flex-1 h-1"
                   />
-                  <span className="text-[9px] text-white/20 font-mono">3x</span>
+                  <span className="text-[9px] text-white/45 font-mono">3x</span>
                 </div>
               </div>
             )}
             <button
               onClick={() => hasMedia && setShowSpeedMenu(!showSpeedMenu)}
               disabled={!hasMedia}
-              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/30 hover:text-white/60"
+              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/55 hover:text-white/75"
               title="Playback speed"
             >
               <Gauge className="w-3 h-3" />
