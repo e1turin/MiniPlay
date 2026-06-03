@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build && mv out docs",
+    "build": "next build && mv out docs && touch docs/.nojekyll",
     "start": "npx http-server ./docs -p 3000",
     "lint": "eslint ."
   },
