@@ -791,9 +791,9 @@ export default function MediaPlayer() {
                         className="absolute w-56 h-56 object-cover blur-3xl opacity-30 scale-150"
                         aria-hidden
                       />
-                      {/* Pulse ring */}
+                      {/* Pulse ring — square to match album art */}
                       <div
-                        className={`absolute w-36 h-36 rounded-full border-2 border-[#7c3aed]/30 animate-pulse-ring ${
+                        className={`absolute w-36 h-36 rounded-xl border-2 border-[#7c3aed]/30 animate-pulse-ring ${
                           isPlaying ? "animate-pulse-ring-active" : "animate-pulse-ring-paused"
                         }`}
                       />
