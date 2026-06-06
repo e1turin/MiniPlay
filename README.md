@@ -35,10 +35,10 @@ The static site will be generated in the `docs/` folder, ready for GitHub Pages 
 ## Demo
 
 Start screen:
-![](./docs/screenshot-start.png)
+![](./res/screenshot-start.png)
 
 Playlist:
-![](./docs/screenshot-playlist.png)
+![](./res/screenshot-playlist.png)
 
 https://e1turin.github.io/zai-miniplayer/
 
