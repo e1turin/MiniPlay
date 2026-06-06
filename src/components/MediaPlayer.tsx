@@ -38,6 +38,7 @@ import {
   ListMusic,
   GripVertical,
 } from "lucide-react";
+import { parseBlob } from "music-metadata";
 
 /* ---------- Types ---------- */
 
@@ -46,6 +47,7 @@ interface PlaylistItem {
   file: File;
   name: string;
   isVideo: boolean;
+  albumArt?: string; // data URL of extracted album art
 }
 
 /* ---------- Sortable Item ---------- */
@@ -123,6 +125,29 @@ function SortablePlaylistItem({
 
 const SPEED_PRESETS = [0.5, 1, 1.5, 2];
 
+/* ---------- Album Art Extraction ---------- */
+
+async function extractAlbumArt(file: File): Promise<string | null> {
+  try {
+    const metadata = await parseBlob(file);
+    const pictures = metadata.common.picture;
+    if (pictures && pictures.length > 0) {
+      const pic = pictures[0];
+      // Convert the picture data to a base64 data URL
+      const uint8 = pic.data;
+      let binary = "";
+      for (let i = 0; i < uint8.length; i++) {
+        binary += String.fromCharCode(uint8[i]);
+      }
+      return `data:${pic.format};base64,${btoa(binary)}`;
+    }
+  } catch (err) {
+    // Many files won't have embedded art — this is non-essential
+    console.debug("No album art extracted:", (err as Error)?.message ?? err);
+  }
+  return null;
+}
+
 export default function MediaPlayer() {
   // Playlist state
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
@@ -197,6 +222,19 @@ export default function MediaPlayer() {
       }
       return updated;
     });
+
+    // Asynchronously extract embedded album art for audio files
+    for (const item of newItems) {
+      if (!item.isVideo) {
+        extractAlbumArt(item.file).then((art) => {
+          if (art) {
+            setPlaylist((prev) =>
+              prev.map((p) => (p.id === item.id ? { ...p, albumArt: art } : p))
+            );
+          }
+        });
+      }
+    }
   }, []);
 
   // Play a specific track by index — lazy loads the media
@@ -743,28 +781,54 @@ export default function MediaPlayer() {
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
                   />
-                  {/* Vinyl record - always in DOM, spinning controlled by animation-play-state */}
-                  <div className="relative flex items-center justify-center">
-                    <div
-                      className={`absolute w-36 h-36 rounded-full border-2 border-[#7c3aed]/30 animate-pulse-ring ${
-                        isPlaying ? "animate-pulse-ring-active" : "animate-pulse-ring-paused"
-                      }`}
-                    />
-                    <div
-                      className="w-28 h-28 rounded-full bg-gradient-to-br from-[#1a1a2e] via-[#16161a] to-[#0f0f12] flex items-center justify-center shadow-2xl border border-white/5 animate-spin-slow vinyl-spinning"
-                      style={{ animationPlayState: isPlaying ? "running" : "paused" }}
-                    >
-                      <div className="w-24 h-24 rounded-full border border-white/5 flex items-center justify-center">
-                        <div className="w-20 h-20 rounded-full border border-white/[0.03] flex items-center justify-center">
-                          <div className="w-16 h-16 rounded-full border border-white/[0.03] flex items-center justify-center">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#5b21b6] flex items-center justify-center shadow-lg">
-                              <Music className="w-4 h-4 text-white" />
+                  {/* Album art or vinyl record fallback */}
+                  {currentItem.albumArt ? (
+                    <div className="relative flex items-center justify-center">
+                      {/* Blurred background layer */}
+                      <img
+                        src={currentItem.albumArt}
+                        alt=""
+                        className="absolute w-56 h-56 object-cover blur-3xl opacity-30 scale-150"
+                        aria-hidden
+                      />
+                      {/* Pulse ring */}
+                      <div
+                        className={`absolute w-36 h-36 rounded-full border-2 border-[#7c3aed]/30 animate-pulse-ring ${
+                          isPlaying ? "animate-pulse-ring-active" : "animate-pulse-ring-paused"
+                        }`}
+                      />
+                      {/* Album art cover */}
+                      <div className="w-28 h-28 rounded-xl overflow-hidden shadow-2xl ring-2 ring-white/10 relative">
+                        <img
+                          src={currentItem.albumArt}
+                          alt={`${currentFileName} album art`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative flex items-center justify-center">
+                      <div
+                        className={`absolute w-36 h-36 rounded-full border-2 border-[#7c3aed]/30 animate-pulse-ring ${
+                          isPlaying ? "animate-pulse-ring-active" : "animate-pulse-ring-paused"
+                        }`}
+                      />
+                      <div
+                        className="w-28 h-28 rounded-full bg-gradient-to-br from-[#1a1a2e] via-[#16161a] to-[#0f0f12] flex items-center justify-center shadow-2xl border border-white/5 animate-spin-slow vinyl-spinning"
+                        style={{ animationPlayState: isPlaying ? "running" : "paused" }}
+                      >
+                        <div className="w-24 h-24 rounded-full border border-white/5 flex items-center justify-center">
+                          <div className="w-20 h-20 rounded-full border border-white/[0.03] flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-full border border-white/[0.03] flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#5b21b6] flex items-center justify-center shadow-lg">
+                                <Music className="w-4 h-4 text-white" />
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </>
               )}
               {currentItem.isVideo && (

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build && mv out docs && touch docs/.nojekyll",
+    "build": "next build && (rm -rf docs; mv out docs) && touch docs/.nojekyll",
     "start": "npx http-server ./docs -p 3000",
     "lint": "eslint ."
   },
@@ -52,6 +52,7 @@
     "framer-motion": "^12.23.2",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.525.0",
+    "music-metadata": "^11.12.3",
     "next": "^16.1.1",
     "next-auth": "^4.24.11",
     "next-intl": "^4.3.4",
