@@ -37,6 +37,9 @@ The static site will be generated in the `docs/` folder, ready for GitHub Pages 
 Start screen:
 ![](./res/screenshot-start.png)
 
+Album cover:
+![](./res/screenshot-album-cover.png)
+
 Playlist:
 ![](./res/screenshot-playlist.png)
 
