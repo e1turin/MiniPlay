@@ -15,8 +15,8 @@ export default function Home() {
     // Register service worker for PWA
     if ("serviceWorker" in navigator) {
       // Get the basePath from the current pathname
-      const basePath = pathname.startsWith("/zai-miniplayer")
-        ? "/zai-miniplayer"
+      const basePath = pathname.startsWith("/MiniPlay")
+        ? "/MiniPlay"
         : "";
 
       navigator.serviceWorker

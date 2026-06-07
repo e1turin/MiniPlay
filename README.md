@@ -43,7 +43,7 @@ Album cover:
 Playlist:
 ![](./res/screenshot-playlist.png)
 
-https://e1turin.github.io/zai-miniplayer/
+https://e1turin.github.io/MiniPlay/
 
 ## Tech Stack
 

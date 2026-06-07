@@ -2,7 +2,7 @@
   "name": "MiniPlay",
   "short_name": "MiniPlay",
   "description": "A minimalistic offline media player PWA",
-  "start_url": "/zai-miniplayer/",
+  "start_url": "/MiniPlay/",
   "display": "standalone",
   "display_override": ["window-controls-overlay"],
   "orientation": "any",
@@ -10,7 +10,7 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/zai-miniplayer/icon-512.png",
+      "src": "/MiniPlay/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -18,7 +18,7 @@
   ],
   "file_handlers": [
     {
-      "action": "/zai-miniplayer/",
+      "action": "/MiniPlay/",
       "accept": {
         "audio/*": [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a", ".wma", ".webm", ".opus"],
         "video/*": [".mp4", ".webm", ".ogg", ".mov"]

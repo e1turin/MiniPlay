@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const BASENAME = "/zai-miniplayer";
+const BASENAME = "/MiniPlay";
 
 export const viewport: Viewport = {
   width: "420",
