@@ -250,6 +250,17 @@ export default function MediaPlayer() {
   const playTrack = useCallback((index: number) => {
     if (index < 0) return;
 
+    // If requesting the same track that is already loaded, restart it directly.
+    // This avoids a React bailout when setCurrentIndex receives the same value,
+    // which would keep the <audio> in its "ended" state and never fire onLoadedMetadata.
+    if (index === currentIndex && mediaRef.current) {
+      shouldAutoPlayRef.current = true;
+      setCurrentTime(0);
+      mediaRef.current.currentTime = 0;
+      mediaRef.current.play().catch(() => {});
+      return;
+    }
+
     setPlaylist((prev) => {
       if (index >= prev.length) return prev;
 
@@ -262,7 +273,7 @@ export default function MediaPlayer() {
 
       return prev;
     });
-  }, []);
+  }, [currentIndex]);
 
   // Remove item from playlist
   const removeFromPlaylist = useCallback(
