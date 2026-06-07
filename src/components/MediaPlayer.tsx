@@ -37,6 +37,8 @@ import {
   Plus,
   ListMusic,
   GripVertical,
+  Repeat,
+  Repeat1,
 } from "lucide-react";
 import { parseBlob } from "music-metadata";
 
@@ -167,11 +169,14 @@ export default function MediaPlayer() {
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<'none' | 'playlist' | 'track'>('none');
+  const [showRepeatMenu, setShowRepeatMenu] = useState(false);
 
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
+  const repeatMenuRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
 
   // DnD sensors
@@ -187,11 +192,14 @@ export default function MediaPlayer() {
 
   const currentFileName = currentItem?.name ?? "";
 
-  // Close speed menu on outside click
+  // Close speed/repeat menus on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (speedMenuRef.current && !speedMenuRef.current.contains(e.target as Node)) {
         setShowSpeedMenu(false);
+      }
+      if (repeatMenuRef.current && !repeatMenuRef.current.contains(e.target as Node)) {
+        setShowRepeatMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClick);
@@ -481,18 +489,33 @@ export default function MediaPlayer() {
     if (currentItem?.isVideo) handlePiP();
   }, [currentItem, handlePiP]);
 
-  // Auto-advance on track end — always auto-play next
+  // Auto-advance on track end — supports repeat modes
   const handleMediaEnded = useCallback(() => {
+    if (repeatMode === 'track') {
+      // Repeat current track
+      shouldAutoPlayRef.current = true;
+      setCurrentTime(0);
+      if (mediaRef.current) {
+        mediaRef.current.currentTime = 0;
+        mediaRef.current.play().catch(() => {});
+      }
+      return;
+    }
+
     if (currentIndex < playlist.length - 1) {
       shouldAutoPlayRef.current = true;
       playTrack(currentIndex + 1);
+    } else if (repeatMode === 'playlist') {
+      // Wrap to first track
+      shouldAutoPlayRef.current = true;
+      playTrack(0);
     } else {
       // Last track - stop
       setIsPlaying(false);
       setCurrentTime(0);
       if (mediaRef.current) mediaRef.current.currentTime = 0;
     }
-  }, [currentIndex, playlist.length, playTrack]);
+  }, [currentIndex, playlist.length, playTrack, repeatMode]);
 
   // ---------- Keyboard shortcuts ----------
 
@@ -683,7 +706,7 @@ export default function MediaPlayer() {
         {/* Title bar */}
         <div className="flex items-center h-7 shrink-0 app-drag-region">
           {/* Left: menu + add buttons */}
-          <div className="flex items-center app-no-drag pl-2 gap-0.5">
+          <div className="flex items-center app-no-drag pl-2 gap-0.5 shrink-0">
             <button
               onClick={() => setShowSidebar(!showSidebar)}
               className={`p-1 rounded hover:bg-white/10 transition-colors ${
@@ -702,44 +725,45 @@ export default function MediaPlayer() {
             </button>
           </div>
 
-          {/* Center: file name */}
-          <div className="flex-1 text-center app-drag-region">
+          {/* Center: file name — fills all available space */}
+          <div className="flex-1 text-center app-drag-region min-w-0">
             {currentFileName && (
-              <span className="text-[10px] text-white/60 truncate max-w-[200px] inline-block align-middle">
+              <span className="text-[10px] text-white/60 truncate inline-block align-middle max-w-full px-2">
                 {currentFileName}
               </span>
             )}
           </div>
 
-          {/* Right: volume control */}
+          {/* Right: volume control (overlays so it never shifts the track name) */}
           <div
             ref={volumeRef}
-            className="flex items-center app-no-drag pr-2"
+            className="relative flex items-center app-no-drag pr-2 shrink-0"
             onMouseEnter={() => setShowVolumeSlider(true)}
             onMouseLeave={() => setShowVolumeSlider(false)}
           >
+            {/* Slider overlays to the left of the volume icon */}
             <div
-              className={`flex items-center mr-1 transition-all duration-200 overflow-hidden ${
-                showVolumeSlider ? "w-20 opacity-100" : "w-0 opacity-0"
-              }`}
+              className={`absolute right-7 top-1/2 -translate-y-1/2 transition-all duration-200 ${
+                showVolumeSlider ? "w-20 opacity-100 pointer-events-auto" : "w-0 opacity-0 pointer-events-none"
+              } overflow-hidden`}
             >
               <div className="bg-white/8 rounded px-2 py-1 flex items-center">
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={isMuted ? 0 : volume}
-                    onChange={handleVolumeChange}
-                    className="w-16 h-1"
-                    disabled={!hasMedia}
-                  />
-                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={isMuted ? 0 : volume}
+                  onChange={handleVolumeChange}
+                  className="w-16 h-1"
+                  disabled={!hasMedia}
+                />
+              </div>
             </div>
             <button
               onClick={toggleMute}
               disabled={!hasMedia}
-              className="p-1 rounded hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-white/60 hover:text-white/85"
+              className="p-1 rounded hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-white/60 hover:text-white/85 relative z-10"
               title={isMuted ? "Unmute (M)" : "Mute (M)"}
             >
               <VolumeIcon className="w-3 h-3" />
@@ -939,55 +963,123 @@ export default function MediaPlayer() {
             </button>
           </div>
 
-          {/* Speed control - bottom right corner */}
-          <div ref={speedMenuRef} className="absolute right-2 bottom-2 flex items-center">
-            {showSpeedMenu && (
-              <div className="absolute bottom-full right-0 bg-[#141416] border border-white/10 rounded-lg shadow-2xl p-2 min-w-[140px] z-50">
-                <div className="flex gap-1 mb-2">
-                  {SPEED_PRESETS.map((speed) => (
-                    <button
-                      key={speed}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={() => handleSpeedChange(speed)}
-                      className={`px-1.5 py-0.5 text-[10px] rounded font-mono transition-colors ${
-                        playbackSpeed === speed
-                          ? "bg-[#7c3aed] text-white"
-                          : "bg-white/5 text-white/65 hover:bg-white/10"
-                      }`}
-                    >
-                      {speed}x
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] text-white/45 font-mono">0.25x</span>
-                  <input
-                    type="range"
-                    min={0.25}
-                    max={3}
-                    step={0.05}
-                    value={playbackSpeed}
-                    onChange={handleSpeedSlider}
+          {/* Repeat control - bottom left corner */}
+          <div className="absolute left-2 bottom-2 flex items-center">
+            <div ref={repeatMenuRef} className="relative flex items-center">
+              {showRepeatMenu && (
+                <div className="absolute bottom-full left-0 mb-1 bg-[#141416] border border-white/10 rounded-lg shadow-2xl p-1.5 min-w-[120px] z-50">
+                  <button
                     onMouseDown={(e) => e.stopPropagation()}
-                    className="flex-1 h-1"
-                  />
-                  <span className="text-[9px] text-white/45 font-mono">3x</span>
+                    onClick={() => { setRepeatMode('none'); setShowRepeatMenu(false); }}
+                    className={`w-full flex items-center gap-2 px-2 py-1 text-[10px] rounded transition-colors ${
+                      repeatMode === 'none'
+                        ? 'bg-[#7c3aed]/20 text-white'
+                        : 'text-white/55 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 flex items-center justify-center">
+                      <Repeat className="w-3 h-3" />
+                    </span>
+                    Off
+                  </button>
+                  <button
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={() => { setRepeatMode('playlist'); setShowRepeatMenu(false); }}
+                    className={`w-full flex items-center gap-2 px-2 py-1 text-[10px] rounded transition-colors ${
+                      repeatMode === 'playlist'
+                        ? 'bg-[#7c3aed]/20 text-white'
+                        : 'text-white/55 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 flex items-center justify-center">
+                      <Repeat className="w-3 h-3" />
+                    </span>
+                    Playlist
+                  </button>
+                  <button
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={() => { setRepeatMode('track'); setShowRepeatMenu(false); }}
+                    className={`w-full flex items-center gap-2 px-2 py-1 text-[10px] rounded transition-colors ${
+                      repeatMode === 'track'
+                        ? 'bg-[#7c3aed]/20 text-white'
+                        : 'text-white/55 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 flex items-center justify-center">
+                      <Repeat1 className="w-3 h-3" />
+                    </span>
+                    Track
+                  </button>
                 </div>
-              </div>
-            )}
-            <button
-              onClick={() => hasMedia && setShowSpeedMenu(!showSpeedMenu)}
-              disabled={!hasMedia}
-              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/55 hover:text-white/75"
-              title="Playback speed"
-            >
-              <Gauge className="w-3 h-3" />
-              <span className="text-[10px] font-mono">
-                {playbackSpeed === Math.round(playbackSpeed)
-                  ? `${playbackSpeed}x`
-                  : `${playbackSpeed.toFixed(2)}x`}
-              </span>
-            </button>
+              )}
+              <button
+                onClick={() => hasMedia && setShowRepeatMenu(!showRepeatMenu)}
+                disabled={!hasMedia}
+                className={`p-1 rounded hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors ${
+                  repeatMode !== 'none' ? 'text-[#7c3aed]' : 'text-white/55 hover:text-white/75'
+                }`}
+                title={repeatMode === 'none' ? 'No repeat' : repeatMode === 'playlist' ? 'Repeat playlist' : 'Repeat track'}
+              >
+                {repeatMode === 'track' ? (
+                  <Repeat1 className="w-3.5 h-3.5" />
+                ) : (
+                  <Repeat className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Speed control - bottom right corner */}
+          <div className="absolute right-2 bottom-2 flex items-center">
+            <div ref={speedMenuRef} className="relative flex items-center">
+              {showSpeedMenu && (
+                <div className="absolute bottom-full right-0 mb-1 bg-[#141416] border border-white/10 rounded-lg shadow-2xl p-2 min-w-[140px] z-50">
+                  <div className="flex gap-1 mb-2">
+                    {SPEED_PRESETS.map((speed) => (
+                      <button
+                        key={speed}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={() => handleSpeedChange(speed)}
+                        className={`px-1.5 py-0.5 text-[10px] rounded font-mono transition-colors ${
+                          playbackSpeed === speed
+                            ? "bg-[#7c3aed] text-white"
+                            : "bg-white/5 text-white/65 hover:bg-white/10"
+                        }`}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] text-white/45 font-mono">0.25x</span>
+                    <input
+                      type="range"
+                      min={0.25}
+                      max={3}
+                      step={0.05}
+                      value={playbackSpeed}
+                      onChange={handleSpeedSlider}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      className="flex-1 h-1"
+                    />
+                    <span className="text-[9px] text-white/45 font-mono">3x</span>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => hasMedia && setShowSpeedMenu(!showSpeedMenu)}
+                disabled={!hasMedia}
+                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors text-white/55 hover:text-white/75"
+                title="Playback speed"
+              >
+                <Gauge className="w-3 h-3" />
+                <span className="text-[10px] font-mono">
+                  {playbackSpeed === Math.round(playbackSpeed)
+                    ? `${playbackSpeed}x`
+                    : `${playbackSpeed.toFixed(2)}x`}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
