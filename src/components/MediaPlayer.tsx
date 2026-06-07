@@ -150,6 +150,34 @@ async function extractAlbumArt(file: File): Promise<string | null> {
   return null;
 }
 
+/* ---------- Settings persistence ---------- */
+
+const STORAGE_KEY = 'zai-player-settings';
+
+interface SavedSettings {
+  repeatMode: 'none' | 'playlist' | 'track';
+  volume: number;
+  isMuted: boolean;
+  playbackSpeed: number;
+}
+
+function loadSettings(): SavedSettings {
+  if (typeof window === 'undefined') return { repeatMode: 'none', volume: 1, isMuted: false, playbackSpeed: 1 };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { repeatMode: 'none', volume: 1, isMuted: false, playbackSpeed: 1 };
+    return JSON.parse(raw);
+  } catch {
+    return { repeatMode: 'none', volume: 1, isMuted: false, playbackSpeed: 1 };
+  }
+}
+
+function saveSettings(settings: SavedSettings) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch { /* storage full or unavailable — silently ignore */ }
+}
+
 export default function MediaPlayer() {
   // Playlist state
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
@@ -159,17 +187,17 @@ export default function MediaPlayer() {
   // Tracks whether the user explicitly requested playback (vs. auto-play on add)
   const shouldAutoPlayRef = useRef(false);
 
-  // Playback state
+  // Playback state — initialised from saved settings where applicable
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [playbackSpeed, setPlaybackSpeed] = useState(() => loadSettings().playbackSpeed);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(() => loadSettings().volume);
+  const [isMuted, setIsMuted] = useState(() => loadSettings().isMuted);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-  const [repeatMode, setRepeatMode] = useState<'none' | 'playlist' | 'track'>('none');
+  const [repeatMode, setRepeatMode] = useState<'none' | 'playlist' | 'track'>(() => loadSettings().repeatMode);
   const [showRepeatMenu, setShowRepeatMenu] = useState(false);
 
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
@@ -205,6 +233,11 @@ export default function MediaPlayer() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  // Persist settings on every change
+  useEffect(() => {
+    saveSettings({ repeatMode, volume, isMuted, playbackSpeed });
+  }, [repeatMode, volume, isMuted, playbackSpeed]);
 
   // ---------- Playlist helpers ----------
 
@@ -426,13 +459,17 @@ export default function MediaPlayer() {
   const handleLoadedMetadata = useCallback(() => {
     if (!mediaRef.current) return;
     setDuration(mediaRef.current.duration);
+    // Apply persisted settings to the new media element
+    mediaRef.current.volume = volume;
+    mediaRef.current.muted = isMuted;
+    mediaRef.current.playbackRate = playbackSpeed;
     // Only auto-play if explicitly requested (track switch, prev/next, auto-advance)
     // NOT when a file is first added to playlist
     if (shouldAutoPlayRef.current) {
       mediaRef.current.play().catch(() => {});
       shouldAutoPlayRef.current = false;
     }
-  }, []);
+  }, [volume, isMuted, playbackSpeed]);
 
   const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value);
